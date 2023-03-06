@@ -1,32 +1,17 @@
 // CPP file to handle Client socket connections
 #include "ConnectionHandler.h"
 
-void handleConnection(int connfd) {
-    char buff[BUFF_MAX];
-
-    while (TRUE) {
-        // Enter message to Server and send it
-        bzero(buff, sizeof(buff));
-        printf(" -- To Server: ");
-        gets(buff);
-        // if message contains "Exit" then server exit and chat ended
-        if (strncmp("exit", buff, 4) == 0)
-            break;
-        write(connfd, buff, sizeof(buff));
-
-        // Read message from Server and print it
-        bzero(buff, sizeof(buff));
-        read(connfd, buff, sizeof(buff));
-        printf(" -- From Server: %s\n", buff);
-    }
+SocketHandler* newSocketHandler() {
+    SocketHandler* sh = (SocketHandler*)calloc(1, sizeof(SocketHandler));
+    sh->initSocket = initSocket;
+    sh->closeSocket = closeSocket;
+    sh->sendMessage = sendMessage;
+    sh->recvMessage = recvMessage;
 }
 
-void startConnection(void) {
-    int sockfd, connfd;
-    struct sockaddr_in servaddr;
-
+void initSocket(SocketHandler* sh) {
     // Creating client socket file descriptor and verification
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sh->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("## Socket creation failed...");
         exit(EXIT_FAILURE);
     }
@@ -34,21 +19,32 @@ void startConnection(void) {
         puts("## Socket succesfully created...");
     }
 
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    servaddr.sin_port = htons(PORT);
+    sh->servaddr.sin_family = AF_INET;
+    sh->servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sh->servaddr.sin_port = htons(PORT);
 
-    if ((connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr))) < 0) {
+    if ((sh->connfd = connect(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr))) < 0) {
         perror("## Connection with server failed...");
         exit(EXIT_FAILURE);
     }
     else {
         puts("## Connected to server successfully...");
     }
+}
 
-    handleConnection(sockfd);
-    puts("## Client exit...");
-
+void closeSocket(SocketHandler* sh) {
+    puts("## Closing connection with server...");
+    
     // closing the connected socket
-    close(sockfd);
+    close(sh->sockfd);
+}
+
+void sendMessage(SocketHandler* sh, char* msg) {
+    write(sh->sockfd, msg, sizeof(msg));
+}
+
+char* recvMessage(SocketHandler* sh) {
+    bzero(sh->buff, sizeof(sh->buff));
+    read(sh->sockfd, sh->buff, sizeof(sh->buff));
+    return sh->buff;
 }
