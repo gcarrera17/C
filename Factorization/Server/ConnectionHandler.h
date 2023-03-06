@@ -22,8 +22,9 @@ typedef struct Server_Socket {
 	void  (*initSocket)(Server_Socket* self);
 	void  (*closeSocket)(Server_Socket* self);
 	void  (*waitForConnections)(Server_Socket* self);
-	void  (*sendMessage)(Server_Socket* self, char* msg);
-	char* (*recvMessage)(Server_Socket* self);
+	void* (*handleConnection)(void* self);
+	void  (*sendMessage)(Server_Socket* self);
+	int   (*recvMessage)(Server_Socket* self);
 
 	private:
 }SocketHandler;
@@ -32,7 +33,6 @@ SocketHandler* newSocketHandler();
 void  initSocket(SocketHandler* sh);
 void  closeSocket(SocketHandler* sh);
 void  waitForConnections(SocketHandler* sh);
-void  sendMessage(SocketHandler* sh, char* msg);
-char* recvMessage(SocketHandler* sh);
-
-void* handleConnection(void* connfd);
+void* handleConnection(void* sock);
+void  sendMessage(SocketHandler* sh);
+int   recvMessage(SocketHandler* sh);
