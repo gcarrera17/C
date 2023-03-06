@@ -6,38 +6,42 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #define PORT 8080
 #define TRUE 1
 #define FALSE 0
 #define MAX 1024
+#define SA struct sockaddr
 
-void chat(int connfd) {
+void* handleConnection(void* connfd) {
     char buff[MAX];
+    int valread;
+    int sock = *(int*)connfd;
 
     while (TRUE) {
         // Read the message from client and print it
         bzero(buff, MAX);
-        read(connfd, buff, sizeof(buff));
-        printf(" -- From Client: %s\n", buff);
-
-        // Enter message to Client and send it
-        bzero(buff, MAX);
-        printf(" -- To Client: ");
-        gets(buff);
-        write(connfd, buff, sizeof(buff));
-
-        // if message contains "Exit" then server exit and chat ended
-        if (strncmp("exit", buff, 4) == 0)
+        if ((valread = read(sock, buff, sizeof(buff))) == 0) {
+            printf("## Client disconnected...\n socket id: %d\n", sock);
+            close(sock);
             break;
+        }
+        else {
+            printf("## New message from Client(%d): %s\n", sock, buff);
+            strcat(buff, "!!!");
+            printf("  -- To Client(%d): %s\n", sock, buff);
+            write(sock, buff, sizeof(buff));
+        }
     }
 }
 
 int main()
 {
-    int sockfd, connfd, addrlen;
+    int sockfd, connfd;
     struct sockaddr_in servaddr;
     int opt = TRUE;
+    int addrlen = sizeof(servaddr);
 
     // Creating Socket file descriptor and verification
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -63,7 +67,7 @@ int main()
     servaddr.sin_port = htons(PORT);
 
     // Binding newly created socket to given IP and verification
-    if ((bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))) != 0) {
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
         perror("## Socket bind failed...");
         exit(EXIT_FAILURE);
     }
@@ -80,20 +84,26 @@ int main()
         puts("## Server listening...");
     }
 
-    addrlen = sizeof(servaddr);
     puts("\nWaiting for connections...");
 
-    // Wait for activity in the socket
-    if ((connfd = accept(sockfd, (struct sockaddr*)&servaddr, (socklen_t*)&addrlen)) < 0) {
-        perror("## Server accept failed...");
-        exit(EXIT_FAILURE);
-    }
-    else {
-        printf("## New connection...\n socket id: %d (ip %s, port %d)\n", connfd, inet_ntoa(servaddr.sin_addr), ntohs(servaddr.sin_port));
-    }
+    while (TRUE) {
+        // Wait for activity in the socket
+        if ((connfd = accept(sockfd, (SA*)&servaddr, (socklen_t*)&addrlen)) < 0) {
+            perror("## Server accept failed...");
+            continue;
+        }
+        else {
+            printf("## New connection...\n socket id: %d (ip %s, port %d)\n", connfd, inet_ntoa(servaddr.sin_addr), ntohs(servaddr.sin_port));
+        }
 
-    chat(connfd);
-    puts("## Server exit...");
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, handleConnection, &connfd) < 0) {
+            perror("## Thread creation failed...");
+            continue;
+        }
+
+        pthread_detach(thread_id);
+    }
 
     // Closing the connected socket
     close(sockfd);
