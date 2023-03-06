@@ -80,8 +80,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="ConnectionHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConnectionHandler.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
