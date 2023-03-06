@@ -16,9 +16,12 @@ int main()
         if (strncmp("exit", buff, 4) == 0)
             break;
 
-        sock->sendMessage(sock, buff);
+        strcpy(sock->buff, buff);
 
-        printf(" -- From Server: %s\n", sock->recvMessage(sock));
+        sock->sendMessage(sock);
+        sock->recvMessage(sock);
+
+        printf(" -- From Server: %s\n", sock->buff);
     }
 
     sock->closeSocket(sock);
