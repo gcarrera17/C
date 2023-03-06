@@ -1,32 +1,11 @@
 // CPP file to handle Server socket connections
 #include "ConnectionHandler.h"
 
-void* handleConnection(void* connfd) {
-    char buff[BUFF_MAX];
-    int valread;
-    int sock = *(int*)connfd;
-
-    while (TRUE) {
-        // Read the message from client and print it
-        bzero(buff, BUFF_MAX);
-        if ((valread = read(sock, buff, sizeof(buff))) == 0) {
-            printf("## Client disconnected...\n socket id: %d\n", sock);
-            close(sock);
-            break;
-        }
-        else {
-            printf("## New message from Client(%d): %s\n", sock, buff);
-            strcat(buff, "!!!");
-            printf("  -- To Client(%d): %s\n", sock, buff);
-            write(sock, buff, sizeof(buff));
-        }
-    }
-}
-
 SocketHandler* newSocketHandler() {
     SocketHandler* sh = (SocketHandler*)malloc(sizeof(SocketHandler));
     sh->initSocket = initSocket;
     sh->closeSocket = closeSocket;
+    sh->handleConnection = handleConnection;
     sh->sendMessage = sendMessage;
     sh->recvMessage = recvMessage;
     sh->waitForConnections = waitForConnections;
@@ -95,12 +74,34 @@ void  waitForConnections(SocketHandler* sh) {
         }
 
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, handleConnection, &sh->connfd) < 0) {
+        if (pthread_create(&thread_id, NULL, handleConnection, sh) < 0) {
             perror("## Thread creation failed...");
             continue;
         }
 
         pthread_detach(thread_id);
+    }
+}
+
+void* handleConnection(void* sock) {
+    int valread;
+    SocketHandler* sh = (SocketHandler*)sock;
+
+    while (TRUE) {
+        // Read the message from client and print it
+        //bzero(sh->buff, sizeof(sh->buff));
+        if ((valread = sh->recvMessage(sh)) == 0) {
+            printf("## Client disconnected...\n socket id: %d (ip: %s, port: %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
+            close(sh->connfd);
+            break;
+        }
+        else {
+            printf("## New message from Client(%d): %s\n", sh->connfd, sh->buff);
+            strcat(sh->buff, "!!!");
+            printf("  -- To Client(%d): %s\n", sh->connfd, sh->buff);
+            sh->sendMessage(sh);
+            //write(sh->connfd, sh->buff, sizeof(sh->buff));
+        }
     }
 }
 
@@ -111,12 +112,16 @@ void  closeSocket(SocketHandler* sh) {
     close(sh->sockfd);
 }
 
-void  sendMessage(SocketHandler* sh, char* msg) {
-    write(sh->sockfd, msg, sizeof(msg));
+void  sendMessage(SocketHandler* sh) {
+    write(sh->connfd, sh->buff, sizeof(sh->buff));
+    bzero(sh->buff, sizeof(sh->buff));
 }
 
-char* recvMessage(SocketHandler* sh) {
+int recvMessage(SocketHandler* sh) {
+    int valread;
+    
     bzero(sh->buff, sizeof(sh->buff));
-    read(sh->connfd, sh->buff, sizeof(sh->buff));
-    return sh->buff;
+    valread = read(sh->connfd, sh->buff, sizeof(sh->buff));
+    
+    return valread;
 }
