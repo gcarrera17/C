@@ -14,5 +14,25 @@
 #define BUFF_MAX 1024
 #define SA struct sockaddr
 
+typedef struct Server_Socket {
+	int sockfd, connfd;
+	char buff[BUFF_MAX];
+	struct sockaddr_in servaddr;
+
+	void  (*initSocket)(Server_Socket* self);
+	void  (*closeSocket)(Server_Socket* self);
+	void  (*waitForConnections)(Server_Socket* self);
+	void  (*sendMessage)(Server_Socket* self, char* msg);
+	char* (*recvMessage)(Server_Socket* self);
+
+	private:
+}SocketHandler;
+
+SocketHandler* newSocketHandler();
+void  initSocket(SocketHandler* sh);
+void  closeSocket(SocketHandler* sh);
+void  waitForConnections(SocketHandler* sh);
+void  sendMessage(SocketHandler* sh, char* msg);
+char* recvMessage(SocketHandler* sh);
+
 void* handleConnection(void* connfd);
-void startConnection(void);

@@ -3,7 +3,9 @@
 
 int main()
 {
-    startConnection();
+    SocketHandler* sock = newSocketHandler();
+    sock->initSocket(sock);
+    sock->closeSocket(sock);
 
     return 0;
 }
