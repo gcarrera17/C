@@ -84,7 +84,7 @@ int main()
         puts("## Server listening...");
     }
 
-    puts("\nWaiting for connections...");
+    puts("Waiting for connections...");
 
     while (TRUE) {
         // Wait for activity in the socket
