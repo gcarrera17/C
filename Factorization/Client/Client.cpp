@@ -1,6 +1,11 @@
 // Client side C program
 #include "ConnectionHandler.h"
 
+/*void* createSocket(void* data) {
+    char* msg = (char*)data;
+    SocketHandler* sock = newSocketHandler();
+}*/
+
 int main()
 {
     SocketHandler* sock = newSocketHandler();
@@ -16,9 +21,7 @@ int main()
         if (strncmp("exit", buff, 4) == 0)
             break;
 
-        strcpy(sock->buff, buff);
-
-        sock->sendMessage(sock);
+        sock->sendMessage(sock, buff);
         sock->recvMessage(sock);
 
         printf(" -- From Server: %s\n", sock->buff);

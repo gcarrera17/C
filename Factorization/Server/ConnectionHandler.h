@@ -23,7 +23,7 @@ typedef struct Server_Socket {
 	void  (*closeSocket)(Server_Socket* self);
 	void  (*waitForConnections)(Server_Socket* self);
 	void* (*handleConnection)(void* self);
-	void  (*sendMessage)(Server_Socket* self);
+	void  (*sendMessage)(Server_Socket* self, char* msg);
 	int   (*recvMessage)(Server_Socket* self);
 
 	private:
@@ -34,5 +34,5 @@ void  initSocket(SocketHandler* sh);
 void  closeSocket(SocketHandler* sh);
 void  waitForConnections(SocketHandler* sh);
 void* handleConnection(void* sock);
-void  sendMessage(SocketHandler* sh);
+void  sendMessage(SocketHandler* sh, char* msg);
 int   recvMessage(SocketHandler* sh);

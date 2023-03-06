@@ -39,9 +39,8 @@ void closeSocket(SocketHandler* sh) {
     close(sh->sockfd);
 }
 
-void sendMessage(SocketHandler* sh) {
-    write(sh->sockfd, sh->buff, sizeof(sh->buff));
-    bzero(sh->buff, sizeof(sh->buff));
+void sendMessage(SocketHandler* sh, char* msg) {
+    write(sh->sockfd, msg, sizeof(msg));
 }
 
 int recvMessage(SocketHandler* sh) {

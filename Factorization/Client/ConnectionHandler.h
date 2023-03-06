@@ -19,12 +19,12 @@ typedef struct Client_Socket {
 
 	void  (*initSocket)(Client_Socket* self);
 	void  (*closeSocket)(Client_Socket* self);
-	void  (*sendMessage)(Client_Socket* self);
+	void  (*sendMessage)(Client_Socket* self, char* msg);
 	int   (*recvMessage)(Client_Socket* self);
 }SocketHandler;
 
 SocketHandler* newSocketHandler();
 void  initSocket(SocketHandler* sh);
 void  closeSocket(SocketHandler* sh);
-void  sendMessage(SocketHandler* sh);
+void  sendMessage(SocketHandler* sh, char* msg);
 int   recvMessage(SocketHandler* sh);
