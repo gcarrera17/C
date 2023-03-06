@@ -2,7 +2,7 @@
 #include "ConnectionHandler.h"
 
 SocketHandler* newSocketHandler() {
-    SocketHandler* sh = (SocketHandler*)calloc(1, sizeof(SocketHandler));
+    SocketHandler* sh = (SocketHandler*)malloc(sizeof(SocketHandler));
     sh->initSocket = initSocket;
     sh->closeSocket = closeSocket;
     sh->sendMessage = sendMessage;
@@ -23,7 +23,7 @@ void initSocket(SocketHandler* sh) {
     sh->servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     sh->servaddr.sin_port = htons(PORT);
 
-    if ((sh->connfd = connect(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr))) < 0) {
+    if (connect(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr)) < 0) {
         perror("## Connection with server failed...");
         exit(EXIT_FAILURE);
     }

@@ -23,14 +23,20 @@ void* handleConnection(void* connfd) {
     }
 }
 
-void startConnection(void) {
-    int sockfd, connfd;
-    struct sockaddr_in servaddr;
+SocketHandler* newSocketHandler() {
+    SocketHandler* sh = (SocketHandler*)malloc(sizeof(SocketHandler));
+    sh->initSocket = initSocket;
+    sh->closeSocket = closeSocket;
+    sh->sendMessage = sendMessage;
+    sh->recvMessage = recvMessage;
+    sh->waitForConnections = waitForConnections;
+}
+
+void  initSocket(SocketHandler* sh) {
     int opt = TRUE;
-    int addrlen = sizeof(servaddr);
 
     // Creating Socket file descriptor and verification
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((sh->sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("## Socket creation failed...");
         exit(EXIT_FAILURE);
     }
@@ -39,7 +45,7 @@ void startConnection(void) {
     }
 
     // Set Socket options and verification
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+    if (setsockopt(sh->sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("## Setting socket options failed...");
         exit(EXIT_FAILURE);
     }
@@ -48,12 +54,12 @@ void startConnection(void) {
     }
 
     // Assing IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(PORT);
+    sh->servaddr.sin_family = AF_INET;
+    sh->servaddr.sin_addr.s_addr = INADDR_ANY;
+    sh->servaddr.sin_port = htons(PORT);
 
     // Binding newly created socket to given IP and verification
-    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+    if ((bind(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr))) != 0) {
         perror("## Socket bind failed...");
         exit(EXIT_FAILURE);
     }
@@ -62,7 +68,7 @@ void startConnection(void) {
     }
 
     // Now Server is ready to listen and verification
-    if ((listen(sockfd, 5)) != 0) {
+    if ((listen(sh->sockfd, 5)) != 0) {
         puts("## Listen failed...");
         exit(EXIT_FAILURE);
     }
@@ -70,27 +76,47 @@ void startConnection(void) {
         puts("## Server listening...");
     }
 
+    sh->waitForConnections(sh);
+}
+
+void  waitForConnections(SocketHandler* sh) {
+    int addrlen = sizeof(sh->servaddr);
+
     puts("Waiting for connections...");
 
     while (TRUE) {
         // Wait for activity in the socket
-        if ((connfd = accept(sockfd, (SA*)&servaddr, (socklen_t*)&addrlen)) < 0) {
+        if ((sh->connfd = accept(sh->sockfd, (SA*)&sh->servaddr, (socklen_t*)&addrlen)) < 0) {
             perror("## Server accept failed...");
             continue;
         }
         else {
-            printf("## New connection...\n socket id: %d (ip %s, port %d)\n", connfd, inet_ntoa(servaddr.sin_addr), ntohs(servaddr.sin_port));
+            printf("## New connection...\n socket id: %d (ip %s, port %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
         }
 
         pthread_t thread_id;
-        if (pthread_create(&thread_id, NULL, handleConnection, &connfd) < 0) {
+        if (pthread_create(&thread_id, NULL, handleConnection, &sh->connfd) < 0) {
             perror("## Thread creation failed...");
             continue;
         }
 
         pthread_detach(thread_id);
     }
+}
 
+void  closeSocket(SocketHandler* sh) {
+    puts("## Closing Master socket...");
+    
     // Closing the connected socket
-    close(sockfd);
+    close(sh->sockfd);
+}
+
+void  sendMessage(SocketHandler* sh, char* msg) {
+    write(sh->sockfd, msg, sizeof(msg));
+}
+
+char* recvMessage(SocketHandler* sh) {
+    bzero(sh->buff, sizeof(sh->buff));
+    read(sh->connfd, sh->buff, sizeof(sh->buff));
+    return sh->buff;
 }
