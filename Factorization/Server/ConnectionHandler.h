@@ -11,7 +11,7 @@
 #define PORT 8080
 #define TRUE 1
 #define FALSE 0
-#define MAX 1024
+#define BUFF_MAX 1024
 #define SA struct sockaddr
 
 void* handleConnection(void* connfd);

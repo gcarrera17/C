@@ -2,13 +2,13 @@
 #include "ConnectionHandler.h"
 
 void* handleConnection(void* connfd) {
-    char buff[MAX];
+    char buff[BUFF_MAX];
     int valread;
     int sock = *(int*)connfd;
 
     while (TRUE) {
         // Read the message from client and print it
-        bzero(buff, MAX);
+        bzero(buff, BUFF_MAX);
         if ((valread = read(sock, buff, sizeof(buff))) == 0) {
             printf("## Client disconnected...\n socket id: %d\n", sock);
             close(sock);

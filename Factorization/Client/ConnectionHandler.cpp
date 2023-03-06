@@ -2,7 +2,7 @@
 #include "ConnectionHandler.h"
 
 void handleConnection(int connfd) {
-    char buff[MAX];
+    char buff[BUFF_MAX];
 
     while (TRUE) {
         // Enter message to Server and send it
@@ -24,8 +24,6 @@ void handleConnection(int connfd) {
 void startConnection(void) {
     int sockfd, connfd;
     struct sockaddr_in servaddr;
-    char* hello = "Hello from client";
-    char buffer[1024] = { 0 };
 
     // Creating client socket file descriptor and verification
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
