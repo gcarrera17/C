@@ -1,30 +1,35 @@
 // Client side C program
 #include "ConnectionHandler.h"
 
-int main()
-{
+void createSocket(char* data) {  
+    int valread;
+    
     SocketHandler* sock = newSocketHandler();
     sock->initSocket(sock);
 
-    while (TRUE) {
-        char buff[BUFF_MAX];
-        bzero(buff, sizeof(buff));
-        printf(" -- To Server: ");
-        gets(buff);
+    printf("  -- To Server: %s\n", data);
+    sock->sendMessage(sock, data);
+    
+    do {
+        valread = recvMessage(sock);
+    } while (valread <= 0);
 
-        // if message contains "Exit" then server exit and chat ended
-        if (strncmp("exit", buff, 4) == 0)
-            break;
-
-        strcpy(sock->buff, buff);
-
-        sock->sendMessage(sock);
-        sock->recvMessage(sock);
-
-        printf(" -- From Server: %s\n", sock->buff);
-    }
+    printf("  -- From Server: Factorial(%s): %s\n", data, sock->buff);
 
     sock->closeSocket(sock);
+}
+
+int main(int argc, char* argv[])
+{
+    if (argc > 11 || argc == 1) {
+        puts("Number of arguments invalid/ Min args = 1, Max args = 10");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        for (int i = 1; i < argc; i++) {
+            createSocket(argv[i]);
+        }
+    }
 
     return 0;
 }
