@@ -10,8 +10,9 @@
 #define TRUE 1
 #define FALSE 0
 #define MAX 1024
+#define SA struct sockaddr
 
-void chat(int connfd) {
+void handleConnection(int connfd) {
     char buff[MAX];
 
     while (TRUE) {
@@ -19,16 +20,15 @@ void chat(int connfd) {
         bzero(buff, sizeof(buff));
         printf(" -- To Server: ");
         gets(buff);
+        // if message contains "Exit" then server exit and chat ended
+        if (strncmp("exit", buff, 4) == 0)
+            break;
         write(connfd, buff, sizeof(buff));
         
         // Read message from Server and print it
         bzero(buff, sizeof(buff));
         read(connfd, buff, sizeof(buff));
         printf(" -- From Server: %s\n", buff);
-
-        // if message contains "Exit" then server exit and chat ended
-        if (strncmp("exit", buff, 4) == 0)
-            break;
     }
 }
 
@@ -52,7 +52,7 @@ int main()
     servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     servaddr.sin_port = htons(PORT);
 
-    if ((connfd = connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))) < 0) {
+    if ((connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr))) < 0) {
         perror("## Connection with server failed...");
         exit(EXIT_FAILURE);
     }
@@ -60,7 +60,7 @@ int main()
         puts("## Connected to server successfully...");
     }
 
-    chat(sockfd);
+    handleConnection(sockfd);
     puts("## Client exit...");
 
     // closing the connected socket
