@@ -1,6 +1,6 @@
 #include "Factorial.h"
 
-int factorial(int num) {
+unsigned long factorial(int num) {
 	if (num == 0 || num == 1)
 		return 1;
 	else

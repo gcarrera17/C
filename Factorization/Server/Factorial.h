@@ -1,2 +1,2 @@
 
-int factorial(int num);
+unsigned long factorial(int num);

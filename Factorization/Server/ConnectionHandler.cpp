@@ -61,7 +61,7 @@ void  initSocket(SocketHandler* sh) {
 void  waitForConnections(SocketHandler* sh) {
     int addrlen = sizeof(sh->servaddr);
 
-    puts("Waiting for connections...");
+    puts("## Waiting for connections...");
 
     while (TRUE) {
         // Wait for activity in the socket
@@ -70,7 +70,7 @@ void  waitForConnections(SocketHandler* sh) {
             continue;
         }
         else {
-            printf("## New connection...\n socket id: %d (ip %s, port %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
+            printf("## New connection...\n   socket id: %d (ip %s, port %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
         }
 
         pthread_t thread_id;
@@ -93,15 +93,20 @@ void* handleConnection(void* sock) {
         // Read the message from client and print it
         bzero(sh->buff, sizeof(sh->buff));
         if ((valread = sh->recvMessage(sh)) == 0) {
-            printf("## Client disconnected...\n socket id: %d (ip: %s, port: %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
+            printf("## Client disconnected...\n   socket id: %d (ip: %s, port: %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
             close(sh->connfd);
             break;
         }
         else {
             strncpy(msg, sh->buff, sizeof(sh->buff));
             printf("## New message from Client(%d): %s\n", sh->connfd, msg);
-            strcat(msg, "!!!");
-            printf("  -- To Client(%d): %s\n", sh->connfd, msg);
+
+            puts("   $ Calculation factorial...");
+            int res = factorial(atol(msg));
+            printf("   $ Factorial(%s): %d\n", msg, res);
+            
+            sprintf(msg, "%d", res);
+            printf("   -- To Client(%d): %s\n", sh->connfd, msg);
             sh->sendMessage(sh, msg);
             //write(sh->connfd, sh->buff, sizeof(sh->buff));
         }
