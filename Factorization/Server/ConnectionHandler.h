@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include "Factorial.h"
+
 #define PORT 8080
 #define TRUE 1
 #define FALSE 0
