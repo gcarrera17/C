@@ -18,7 +18,6 @@
 
 typedef struct Server_Socket {
 	int sockfd, connfd;
-	char buff[BUFF_MAX];
 	struct sockaddr_in servaddr;
 
 	void  (*initSocket)(Server_Socket* self);
@@ -26,7 +25,7 @@ typedef struct Server_Socket {
 	void  (*waitForConnections)(Server_Socket* self);
 	void* (*handleConnection)(void* self);
 	void  (*sendMessage)(Server_Socket* self, char* msg);
-	int   (*recvMessage)(Server_Socket* self);
+	int   (*recvMessage)(Server_Socket* self, char* msg);
 
 	private:
 }SocketHandler;
@@ -37,4 +36,4 @@ void  closeSocket(SocketHandler* sh);
 void  waitForConnections(SocketHandler* sh);
 void* handleConnection(void* sock);
 void  sendMessage(SocketHandler* sh, char* msg);
-int   recvMessage(SocketHandler* sh);
+int   recvMessage(SocketHandler* sh, char* msg);

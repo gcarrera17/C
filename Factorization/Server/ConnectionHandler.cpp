@@ -88,17 +88,15 @@ void* handleConnection(void* sock) {
     SocketHandler* sh = (SocketHandler*)sock;
 
     while (TRUE) {
-        char msg[BUFF_MAX];
+        char msg[BUFF_MAX] = { 0 };
 
         // Read the message from client and print it
-        bzero(sh->buff, sizeof(sh->buff));
-        if ((valread = sh->recvMessage(sh)) == 0) {
+        if ((valread = sh->recvMessage(sh, msg)) == 0) {
             printf("## Client disconnected...\n   socket id: %d (ip: %s, port: %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
             close(sh->connfd);
             break;
         }
         else {
-            strncpy(msg, sh->buff, sizeof(sh->buff));
             printf("## New message from Client(%d): %s\n", sh->connfd, msg);
 
             puts("   $ Calculation factorial...");
@@ -108,7 +106,6 @@ void* handleConnection(void* sock) {
             sprintf(msg, "%d", res);
             printf("   -- To Client(%d): %s\n", sh->connfd, msg);
             sh->sendMessage(sh, msg);
-            //write(sh->connfd, sh->buff, sizeof(sh->buff));
         }
     }
 }
@@ -124,11 +121,10 @@ void  sendMessage(SocketHandler* sh, char* msg) {
     write(sh->connfd, msg, sizeof(msg));
 }
 
-int   recvMessage(SocketHandler* sh) {
+int   recvMessage(SocketHandler* sh, char* msg) {
     int valread;
     
-    bzero(sh->buff, sizeof(sh->buff));
-    valread = read(sh->connfd, sh->buff, sizeof(sh->buff));
+    valread = read(sh->connfd, msg, sizeof(msg));
     
     return valread;
 }
