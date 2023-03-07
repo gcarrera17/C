@@ -6,6 +6,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include "LogHandler.h"
+
 #define PORT 8080
 #define TRUE 1
 #define FALSE 0
