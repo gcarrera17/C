@@ -43,11 +43,10 @@ void sendMessage(SocketHandler* sh, char* msg) {
     write(sh->sockfd, msg, sizeof(msg));
 }
 
-int recvMessage(SocketHandler* sh) {
+int recvMessage(SocketHandler* sh, char* msg) {
     int valread;
 
-    bzero(sh->buff, sizeof(sh->buff));
-    valread = read(sh->sockfd, sh->buff, sizeof(sh->buff));
+    valread = read(sh->sockfd, msg, sizeof(msg));
     
     return valread;
 }
