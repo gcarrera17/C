@@ -1,5 +1,5 @@
 // CPP file to handle Server socket connections
-#include "ConnectionHandler.h"
+#include "SocketHandler.h"
 
 SocketHandler* newSocketHandler() {
     SocketHandler* sh = (SocketHandler*)malloc(sizeof(SocketHandler));
@@ -16,20 +16,20 @@ void  initSocket(SocketHandler* sh) {
 
     // Creating Socket file descriptor and verification
     if ((sh->sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror("## Socket creation failed...");
+        writeError("## Socket creation failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Socket succesfully created...");
+        writeLog("## Socket succesfully created...");
     }
 
     // Set Socket options and verification
     if (setsockopt(sh->sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("## Setting socket options failed...");
+        writeError("## Setting socket options failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Socket options succesfully set...");
+        writeLog("## Socket options succesfully set...");
     }
 
     // Assing IP, PORT
@@ -39,20 +39,20 @@ void  initSocket(SocketHandler* sh) {
 
     // Binding newly created socket to given IP and verification
     if ((bind(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr))) != 0) {
-        perror("## Socket bind failed...");
+        writeError("## Socket bind failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Socket succesfully binded...");
+        writeLog("## Socket succesfully binded...");
     }
 
     // Now Server is ready to listen and verification
     if ((listen(sh->sockfd, 5)) != 0) {
-        puts("## Listen failed...");
+        writeError("## Listen failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Server listening...");
+        writeLog("## Server listening...");
     }
 
     sh->waitForConnections(sh);
@@ -61,21 +61,21 @@ void  initSocket(SocketHandler* sh) {
 void  waitForConnections(SocketHandler* sh) {
     int addrlen = sizeof(sh->servaddr);
 
-    puts("## Waiting for connections...");
+    writeLog("## Waiting for connections...");
 
     while (TRUE) {
         // Wait for activity in the socket
         if ((sh->connfd = accept(sh->sockfd, (SA*)&sh->servaddr, (socklen_t*)&addrlen)) < 0) {
-            perror("## Server accept failed...");
+            writeError("## Server accept failed...");
             continue;
         }
         else {
-            printf("## New connection...\n   socket id: %d (ip %s, port %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
+            writeLog("## New connection...\n   socket id: %d (ip %s, port %d)", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
         }
 
         pthread_t thread_id;
         if (pthread_create(&thread_id, NULL, handleConnection, sh) < 0) {
-            perror("## Thread creation failed...");
+            writeError("## Thread creation failed...");
             continue;
         }
 
@@ -92,26 +92,26 @@ void* handleConnection(void* sock) {
 
         // Read the message from client and print it
         if ((valread = sh->recvMessage(sh, msg)) == 0) {
-            printf("## Client disconnected...\n   socket id: %d (ip: %s, port: %d)\n", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
+            writeLog("## Client disconnected...\n   socket id: %d (ip: %s, port: %d)", sh->connfd, inet_ntoa(sh->servaddr.sin_addr), ntohs(sh->servaddr.sin_port));
             close(sh->connfd);
             break;
         }
         else {
-            printf("## New message from Client(%d): %s\n", sh->connfd, msg);
+            writeLog("## New message from Client(%d): %s", sh->connfd, msg);
 
-            puts("   $ Calculation factorial...");
+            writeLog("   $ Calculation factorial...");
             int res = factorial(atol(msg));
-            printf("   $ Factorial(%s): %d\n", msg, res);
+            writeLog("   $ Factorial(%s): %d", msg, res);
             
             sprintf(msg, "%d", res);
-            printf("   -- To Client(%d): %s\n", sh->connfd, msg);
+            writeLog("   -- To Client(%d): %s", sh->connfd, msg);
             sh->sendMessage(sh, msg);
         }
     }
 }
 
 void  closeSocket(SocketHandler* sh) {
-    puts("## Closing Master socket...");
+    writeLog("## Closing Master socket...");
     
     // Closing the connected socket
     close(sh->sockfd);
