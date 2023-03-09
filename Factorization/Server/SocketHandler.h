@@ -9,6 +9,7 @@
 #include <pthread.h>
 
 #include "Factorial.h"
+#include "LogHandler.h"
 
 #define PORT 8080
 #define TRUE 1

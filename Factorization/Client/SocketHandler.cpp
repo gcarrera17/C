@@ -1,5 +1,5 @@
 // CPP file to handle Client socket connections
-#include "ConnectionHandler.h"
+#include "SocketHandler.h"
 
 SocketHandler* newSocketHandler() {
     SocketHandler* sh = (SocketHandler*)malloc(sizeof(SocketHandler));
@@ -12,11 +12,11 @@ SocketHandler* newSocketHandler() {
 void initSocket(SocketHandler* sh) {
     // Creating client socket file descriptor and verification
     if ((sh->sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("## Socket creation failed...");
+        writeError("## Socket creation failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Socket succesfully created...");
+        writeLog("## Socket succesfully created...");
     }
 
     sh->servaddr.sin_family = AF_INET;
@@ -24,16 +24,16 @@ void initSocket(SocketHandler* sh) {
     sh->servaddr.sin_port = htons(PORT);
 
     if (connect(sh->sockfd, (SA*)&sh->servaddr, sizeof(sh->servaddr)) < 0) {
-        perror("## Connection with server failed...");
+        writeError("## Connection with server failed...");
         exit(EXIT_FAILURE);
     }
     else {
-        puts("## Connected to server successfully...");
+        writeLog("## Connected to server successfully...");
     }
 }
 
 void closeSocket(SocketHandler* sh) {
-    puts("## Closing connection with server...");
+    writeLog("## Closing connection with server...");
     
     // closing the connected socket
     close(sh->sockfd);

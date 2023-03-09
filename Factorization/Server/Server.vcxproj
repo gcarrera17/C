@@ -75,13 +75,15 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="ConnectionHandler.cpp" />
+    <ClCompile Include="SocketHandler.cpp" />
     <ClCompile Include="Factorial.cpp" />
+    <ClCompile Include="LogHandler.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConnectionHandler.h" />
+    <ClInclude Include="SocketHandler.h" />
     <ClInclude Include="Factorial.h" />
+    <ClInclude Include="LogHandler.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
